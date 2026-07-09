@@ -3,6 +3,7 @@ import glob
 import json
 import hashlib
 import zipfile
+import base64
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Dict, List, Optional
@@ -43,8 +44,8 @@ class PatchRule:
     name: str
     search_mask: str
     delete_files: List[str]
-    replace_files: Dict[str, bytes]
-    add_files: Dict[str, bytes]
+    replace_files: Dict[str, str]  # <-- теперь Base64 строки
+    add_files: Dict[str, str]      # <-- тоже Base64 строки
 
 
 def find_mod(mask: str) -> Optional[str]:
@@ -52,6 +53,11 @@ def find_mod(mask: str) -> Optional[str]:
     if not files:
         return None
     return max(files, key=os.path.getmtime)
+
+
+def decode_base64(data: str) -> bytes:
+    """Безопасное декодирование Base64."""
+    return base64.b64decode(data)
 
 
 def apply_patch(jar_path: str, rule: PatchRule) -> bool:
@@ -68,21 +74,27 @@ def apply_patch(jar_path: str, rule: PatchRule) -> bool:
         for item in src.infolist():
             base = os.path.basename(item.filename)
 
+            # Удаление
             if base in rule.delete_files:
                 print(f"  - Удалён: {item.filename}")
                 continue
 
+            # Замена (Base64 → bytes)
             if base in rule.replace_files:
-                dst.writestr(item.filename, rule.replace_files[base])
+                data = decode_base64(rule.replace_files[base])
+                dst.writestr(item.filename, data)
                 print(f"  - Заменён: {item.filename}")
                 replaced.add(base)
                 continue
 
+            # Обычная копия
             with src.open(item) as f:
                 dst.writestr(item, f.read())
 
-        for name, data in rule.add_files.items():
+        # Добавление новых файлов (Base64 → bytes)
+        for name, data_b64 in rule.add_files.items():
             if name not in replaced:
+                data = decode_base64(data_b64)
                 dst.writestr(name, data)
                 print(f"  - Добавлен: {name}")
 
