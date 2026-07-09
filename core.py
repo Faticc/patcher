@@ -72,24 +72,24 @@ def apply_patch(jar_path: str, rule: PatchRule) -> bool:
          zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as dst:
 
         for item in src.infolist():
-            base = os.path.basename(item.filename)
 
-            # Удаление
-            if base in rule.delete_files:
+            # Удаление по полному пути
+            if item.filename in rule.delete_files:
                 print(f"  - Удалён: {item.filename}")
                 continue
 
-            # Замена (Base64 → bytes)
-            if base in rule.replace_files:
-                data = decode_base64(rule.replace_files[base])
+            # Замена по полному пути
+            if item.filename in rule.replace_files:
+                data = decode_base64(rule.replace_files[item.filename])
                 dst.writestr(item.filename, data)
                 print(f"  - Заменён: {item.filename}")
-                replaced.add(base)
+                replaced.add(item.filename)
                 continue
 
             # Обычная копия
             with src.open(item) as f:
                 dst.writestr(item, f.read())
+
 
         # Добавление новых файлов (Base64 → bytes)
         for name, data_b64 in rule.add_files.items():
