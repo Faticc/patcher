@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "patcher"
-version = "0.1.0"
+version = "0.1.1"
 description = "patcher"
 authors = [{ name = "Faticc", email = "komeristyj07@gmail.com" }]
 requires-python = ">=3.8"
@@ -12,4 +12,4 @@ license = { text = "MIT" }
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/Faticc/auth"
+Homepage = "https://github.com/Faticc/patcher"

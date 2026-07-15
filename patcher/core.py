@@ -44,8 +44,8 @@ class PatchRule:
     name: str
     search_mask: str
     delete_files: List[str]
-    replace_files: Dict[str, str]  # <-- теперь Base64 строки
-    add_files: Dict[str, str]      # <-- тоже Base64 строки
+    replace_files: Dict[str, str]
+    add_files: Dict[str, str]
 
 
 def find_mod(mask: str) -> Optional[str]:
